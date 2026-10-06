@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Old Glory Bank | transaction-history</title>
+  
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'self'; 
+                 script-src 'self' 'unsafe-inline'; 
+                 style-src 'self' 'unsafe-inline'; 
+                 img-src 'self' data:;
+                 form-action 'self';
+                 frame-ancestors 'none';">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <style>
+    /* Basic reset and fonts */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: #f4f5f6;
+      color: #222;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Account Restriction Banner */
+    .restriction-banner {
+      background: rgba(211, 52, 71, 0.95);
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(180, 40, 55, 0.9);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+      position: sticky;
+      top: 0;
+    }
+
+    /* Top header */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e6e6e6;
+      padding: 12px 28px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .brand .logo {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .bank-logo {
+      height: 40px;
+      width: auto;
+    }
+    .brand .fdic {
+      font-size:12px;color:#6b6b6b;
+    }
+    .user {
+      font-size:13px;color:#333;text-align:right;
+    }
+    .user .small { font-size:12px;color:#888; }
+
+    /* secondary nav */
+    .subnav {
+      background:#fff;
+      border-bottom:1px solid #eaeaea;
+      padding:10px 28px;
+    }
+    .subnav .links {
+      display:flex;gap:22px;align-items:center;flex-wrap:wrap;
+    }
+    .subnav a { color:#163c6b;text-decoration:none;font-weight:600;font-size:15px; }
+    .subnav a:hover { color:#0f2a4d; }
+
+    /* page container (white card area like screenshot) */
+    .page {
+      max-width:1200px;
+      margin:24px auto;
+      background: #fff;
+      border-radius:6px;
+      box-shadow:0 1px 3px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .page-inner { padding:22px; }
+
+    /* Back link */
+    .back {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#163c6b;
+      text-decoration:none;
+      font-weight:600;
+      margin-bottom:14px;
+    }
+
+    /* Account header */
+    .account-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:20px;
+      border-bottom:1px solid #e6e6e6;
+      padding-bottom:18px;
+    }
+    .account-left {
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .account-logo {
+      width:48px; 
+      height:48px; 
+      border-radius:50%;
+      object-fit: cover;
+    }
+    .acct-meta h1 {
+      margin:0;font-size:24px;font-weight:700;color:#111;
+    }
+    .acct-meta .updated {
+      margin-top:6px;font-size:13px;color:#666;
+    }
+
+    .balances {
+      text-align:right;
+      min-width:220px;
+    }
+    .balances .val {
+      font-size:20px;font-weight:700;color:#111;
+    }
+    .balances .label {
+      font-size:13px;color:#6b6b6b;
+    }
+    .balances .two {
+      display:flex;
+      gap:24px;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    /* Tabs */
+    .tabs {
+      display:flex;
+      gap:22px;
+      margin:18px 0;
+      border-bottom:1px solid #e9e9e9;
+      padding-bottom:8px;
+      align-items:center;
+    }
+    .tab {
+      padding-bottom:10px;
+      cursor:pointer;
+      color:#666;
+      font-weight:600;
+      font-size:15px;
+    }
+    .tab.active {
+      color:#163c6b;
+      border-bottom:3px solid #163c6b;
+    }
+
+    /* search bar row */
+    .search-row {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin:16px 0 8px;
+      padding-top:6px;
+    }
+    .search-box {
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:6px;
+      padding:10px 12px;
+    }
+    .search-box input {
+      border:0;outline:0;width:100%;font-size:15px;
+    }
+    .icons {
+      display:flex;gap:10px;align-items:center;padding-left:6px;
+    }
+    .icon-btn {
+      width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid #eee;background:#fafafa;cursor:pointer;
+    }
+
+    /* table header for Date / Description / Amount */
+    .tx-header {
+      display:grid;
+      grid-template-columns:140px 1fr 160px;
+      gap:12px;
+      align-items:center;
+      padding:10px 6px;
+      border-top:1px solid #eaeaea;
+      border-bottom:1px solid #eaeaea;
+      font-weight:700;
+      color:#555;
+      font-size:13px;
+    }
+
+    /* transaction rows */
+    .tx-list { display:block; }
+    .tx-row {
+      display:grid;
+      grid-template-columns:140px 1fr 160px;
+      gap:12px;
+      align-items:center;
+      padding:14px 6px;
+      border-bottom:1px solid #f0f0f0;
+      background: #fff;
+      transition: background .15s;
+    }
+    .tx-row:hover { background:#fbfbfb; }
+
+    .tx-date {
+      color:#666;font-size:13px;
+      display:flex;flex-direction:column;gap:6px;align-items:flex-start;
+    }
+    .tx-date .d { font-weight:700;color:#333; }
+    .tx-desc { font-size:15px;color:#2b2b2b;font-weight:700; }
+    .tx-desc .sub { display:block;font-size:13px;color:#7a7a7a;margin-top:6px;font-weight:600; }
+    .tx-amount { text-align:right;font-size:16px;font-weight:700; }
+
+    .amt-positive { color:#1a8f3a; } /* green */
+    .amt-negative { color:#d4443e; } /* red */
+
+    .tx-row .menu { text-align:center;color:#888;cursor:pointer;padding-left:8px; }
+
+    /* totals footer like the image */
+    .totals {
+      padding:12px 6px;
+      font-weight:700;
+      color:#111;
+      text-align:right;
+      font-size:14px;
+    }
+
+    /* responsive */
+    @media (max-width:900px) {
+      .tx-header, .tx-row {
+        grid-template-columns:120px 1fr 120px;
+      }
+      .balances { min-width:160px; text-align:left; }
+      .account-header { flex-direction:column; align-items:flex-start; gap:12px; }
+    }
+    @media (max-width:600px) {
+      .tx-header { display:none; }
+      .tx-row { grid-template-columns:1fr; padding:12px; }
+      .tx-date { flex-direction:row; gap:12px; align-items:center; }
+      .tx-amount { text-align:left;margin-top:8px;display:block; }
+      .totals { text-align:left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Account Restriction Banner -->
+  <div class="restriction-banner">
+    <span class="warning-icon">⚠️</span>
+    ACCOUNT UNDER REVIEW - All transactions may be temporarily restricted. Contact Customer Support for assistance.
+  </div>
+
+  <!-- Top header -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <img src="images/logo.webp" alt="Old Glory Bank" class="bank-logo">
+      </div>
+      <div class="fdic">
+        <div style="font-weight:700">FDIC</div>
+        <div style="font-size:12px;color:#6b6b6b">FDIC-Insured - Backed by the full faith and credit of the U.S. Government</div>
+      </div>
+    </div>
+
+    <div class="user">
+      Good Afternoon, <strong>Doug Zoey Lockler</strong><br>
+      <span class="small">Last login 09/11/2025 at 1:06 PM</span>
+    </div>
+  </div>
+
+  <!-- sub navigation -->
+  <div class="subnav">
+    <div class="links" style="max-width:1200px;margin:0 auto;">
+      <a href="#">Home</a>
+      <a href="#">Statement Images</a>
+      <a href="#">Services</a>
+      <a href="#">Settings</a>
+      <a href="#">Messages <span style="background:#2b2b2b;color:#fff;border-radius:50%;padding:2px 6px;margin-left:8px;font-size:12px">2</span></a>
+      <a href="#">Old Glory Nation</a>
+      <a href="#" id="logOffLink">Log Off</a>
+    </div>
+  </div>
+
+  <!-- Page card -->
+  <div class="page" role="main">
+    <div class="page-inner">
+
+      <a class="back" href="dashboard.html">← Back</a>
+
+      <div class="account-header">
+        <div class="account-left">
+          <img src="images/footerlogo.webp" alt="Account" class="account-logo">
+          <div class="acct-meta">
+            <h1>Freedom Checking 9459</h1>
+            <div class="updated">Last Updated: September 14, 2025 12:58 PM</div>
+          </div>
+        </div>
+
+        <div class="balances">
+          <div class="two">
+            <div>
+              <div class="val">$370,089.24</div>
+              <div class="label">Current Balance</div>
+            </div>
+            <div>
+              <div class="val">$370,089.24</div>
+              <div class="label">Available Balance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Transactions</div>
+        <div class="tab">Details & Settings</div>
+      </div>
+
+      <div class="search-row">
+        <div class="search-box" style="min-width:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="opacity:.6" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input id="searchInput" placeholder="Search transactions (optional)" />
+        </div>
+
+        <div class="icons">
+          <div class="icon-btn" title="Search">🔍</div>
+          <div class="icon-btn" title="Filter">⚑</div>
+          <div class="icon-btn" title="Download">⬇️</div>
+          <div class="icon-btn" title="More">⋮</div>
+        </div>
+      </div>
+
+      <!-- table header -->
+      <div class="tx-header" aria-hidden>
+        <div>Date</div>
+        <div>Description</div>
+        <div>Amount</div>
+      </div>
+
+      <!-- transactions list -->
+      <div class="tx-list" id="txList">
+
+        <!-- Rows will be injected by JS exactly matching your PDF details -->
+      </div>
+
+      <!-- totals footer -->
+      <div class="totals" id="totalsFooter"></div>
+
+    </div>
+  </div>
+
+  <script>
+    // Security: Add CSRF protection
+    const generateCSRFToken = () => {
+      return 'csrf_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    };
+
+    const csrfToken = generateCSRFToken();
+    sessionStorage.setItem('csrfToken', csrfToken);
+
+    // Security: Verify authentication before loading transactions
+    const checkAuthentication = () => {
+      const otpVerified = sessionStorage.getItem('otpVerified');
+      const verifiedAt = sessionStorage.getItem('verifiedAt');
+      
+      // Check if OTP was verified and within reasonable time (1 hour)
+      if (!otpVerified || !verifiedAt) {
+        showSecurityAlert('Authentication required. Redirecting to login...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+        return false;
+      }
+      
+      const verificationTime = parseInt(verifiedAt);
+      const currentTime = Date.now();
+      const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+      
+      if (currentTime - verificationTime > oneHour) {
+        showSecurityAlert('Session expired. Please login again.');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+        return false;
+      }
+      
+      return true;
+    };
+
+    // Security: Show security alert
+    function showSecurityAlert(message) {
+      const alert = document.createElement('div');
+      alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid #f5c6cb;
+        z-index: 10000;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      alert.textContent = message;
+      document.body.appendChild(alert);
+      
+      setTimeout(() => {
+        if (alert.parentNode) {
+          alert.remove();
+        }
+      }, 5000);
+    }
+
+    // Security: Input sanitization for search
+    const sanitizeInput = (input) => {
+      return input.replace(/[<>]/g, '').trim();
+    };
+
+    // Logout function
+    function handleLogout() {
+      // Clear session storage
+      sessionStorage.removeItem('otpVerified');
+      sessionStorage.removeItem('verifiedAt');
+      sessionStorage.removeItem('csrfToken');
+      
+      // Show logout message
+      showSecurityAlert('You have been successfully logged out.');
+      
+      // Redirect to login page after delay
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1500);
+    }
+
+    // Transaction data for 2019-2022, net sum = 370,089.24
+    const transactions = [
+      { date: "Jan 15, 2019", title: "Initial Business Capital Deposit", type: "Income", amount: 50000.00, balance: 50000.00 },
+      { date: "Feb 01, 2019", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2500.00, balance: 47500.00 },
+      { date: "Feb 15, 2019", title: "Client Payment - Project Alpha", type: "Income", amount: 15000.00, balance: 62500.00 },
+      { date: "Mar 01, 2019", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -450.00, balance: 62050.00 },
+      { date: "Mar 10, 2019", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -1200.00, balance: 60850.00 },
+      { date: "Apr 01, 2019", title: "Client Payment - Project Beta", type: "Income", amount: 22000.00, balance: 82850.00 },
+      { date: "Apr 15, 2019", title: "Payroll Processing - Q2 2019", type: "Transfer", amount: -8500.00, balance: 74350.00 },
+      { date: "May 01, 2019", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -3200.00, balance: 71150.00 },
+      { date: "May 20, 2019", title: "Client Payment - Project Gamma", type: "Income", amount: 18500.00, balance: 89650.00 },
+      { date: "Jun 01, 2019", title: "Business Insurance Premium", type: "Transfer", amount: -1800.00, balance: 87850.00 },
+      { date: "Jun 15, 2019", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -5400.00, balance: 82450.00 },
+      { date: "Jul 01, 2019", title: "Client Payment - Project Delta", type: "Income", amount: 25000.00, balance: 107450.00 },
+      { date: "Jul 15, 2019", title: "Payroll Processing - Q3 2019", type: "Transfer", amount: -9200.00, balance: 98250.00 },
+      { date: "Aug 01, 2019", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2500.00, balance: 95750.00 },
+      { date: "Aug 20, 2019", title: "Client Payment - Project Epsilon", type: "Income", amount: 12000.00, balance: 107750.00 },
+      { date: "Sep 01, 2019", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -500.00, balance: 107250.00 },
+      { date: "Sep 15, 2019", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -1500.00, balance: 105750.00 },
+      { date: "Oct 01, 2019", title: "Client Payment - Project Zeta", type: "Income", amount: 30000.00, balance: 135750.00 },
+      { date: "Oct 15, 2019", title: "Payroll Processing - Q4 2019", type: "Transfer", amount: -10000.00, balance: 125750.00 },
+      { date: "Nov 01, 2019", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -4000.00, balance: 121750.00 },
+      { date: "Nov 20, 2019", title: "Client Payment - Project Eta", type: "Income", amount: 20000.00, balance: 141750.00 },
+      { date: "Dec 01, 2019", title: "Business Insurance Premium", type: "Transfer", amount: -2000.00, balance: 139750.00 },
+      { date: "Dec 15, 2019", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -6000.00, balance: 133750.00 },
+      { date: "Jan 10, 2020", title: "Client Payment - Project Theta", type: "Income", amount: 28000.00, balance: 161750.00 },
+      { date: "Feb 01, 2020", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2600.00, balance: 159150.00 },
+      { date: "Feb 15, 2020", title: "Payroll Processing - Q1 2020", type: "Transfer", amount: -9500.00, balance: 149650.00 },
+      { date: "Mar 01, 2020", title: "Client Payment - Project Iota", type: "Income", amount: 35000.00, balance: 184650.00 },
+      { date: "Mar 15, 2020", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -550.00, balance: 184100.00 },
+      { date: "Apr 01, 2020", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -2000.00, balance: 182100.00 },
+      { date: "Apr 20, 2020", title: "Client Payment - Project Kappa", type: "Income", amount: 18000.00, balance: 200100.00 },
+      { date: "May 01, 2020", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -5000.00, balance: 195100.00 },
+      { date: "May 15, 2020", title: "Payroll Processing - Q2 2020", type: "Transfer", amount: -10500.00, balance: 184600.00 },
+      { date: "Jun 01, 2020", title: "Client Payment - Project Lambda", type: "Income", amount: 40000.00, balance: 224600.00 },
+      { date: "Jun 15, 2020", title: "Business Insurance Premium", type: "Transfer", amount: -2200.00, balance: 222400.00 },
+      { date: "Jul 01, 2020", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2600.00, balance: 219800.00 },
+      { date: "Jul 15, 2020", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -7500.00, balance: 212300.00 },
+      { date: "Aug 01, 2020", title: "Client Payment - Project Mu", type: "Income", amount: 22000.00, balance: 234300.00 },
+      { date: "Aug 15, 2020", title: "Payroll Processing - Q3 2020", type: "Transfer", amount: -11000.00, balance: 223300.00 },
+      { date: "Sep 01, 2020", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -600.00, balance: 222700.00 },
+      { date: "Sep 20, 2020", title: "Client Payment - Project Nu", type: "Income", amount: 15000.00, balance: 237700.00 },
+      { date: "Oct 01, 2020", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -1800.00, balance: 235900.00 },
+      { date: "Oct 15, 2020", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -4500.00, balance: 231400.00 },
+      { date: "Nov 01, 2020", title: "Client Payment - Project Xi", type: "Income", amount: 30000.00, balance: 261400.00 },
+      { date: "Nov 15, 2020", title: "Payroll Processing - Q4 2020", type: "Transfer", amount: -12000.00, balance: 249400.00 },
+      { date: "Dec 01, 2020", title: "Business Insurance Premium", type: "Transfer", amount: -2500.00, balance: 246900.00 },
+      { date: "Dec 15, 2020", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -8000.00, balance: 238900.00 },
+      { date: "Jan 10, 2021", title: "Client Payment - Project Omicron", type: "Income", amount: 45000.00, balance: 283900.00 },
+      { date: "Feb 01, 2021", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2800.00, balance: 281100.00 },
+      { date: "Feb 15, 2021", title: "Payroll Processing - Q1 2021", type: "Transfer", amount: -12500.00, balance: 268600.00 },
+      { date: "Mar 01, 2021", title: "Client Payment - Project Pi", type: "Income", amount: 38000.00, balance: 306600.00 },
+      { date: "Mar 15, 2021", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -650.00, balance: 305950.00 },
+      { date: "Apr 01, 2021", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -2200.00, balance: 303750.00 },
+      { date: "Apr 20, 2021", title: "Client Payment - Project Rho", type: "Income", amount: 25000.00, balance: 328750.00 },
+      { date: "May 01, 2021", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -5500.00, balance: 323250.00 },
+      { date: "May 15, 2021", title: "Payroll Processing - Q2 2021", type: "Transfer", amount: -13000.00, balance: 310250.00 },
+      { date: "Jun 01, 2021", title: "Client Payment - Project Sigma", type: "Income", amount: 42000.00, balance: 352250.00 },
+      { date: "Jun 15, 2021", title: "Business Insurance Premium", type: "Transfer", amount: -2800.00, balance: 349450.00 },
+      { date: "Jul 01, 2021", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -2800.00, balance: 346650.00 },
+      { date: "Jul 15, 2021", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -9000.00, balance: 337650.00 },
+      { date: "Aug 01, 2021", title: "Client Payment - Project Tau", type: "Income", amount: 28000.00, balance: 365650.00 },
+      { date: "Aug 15, 2021", title: "Payroll Processing - Q3 2021", type: "Transfer", amount: -13500.00, balance: 352150.00 },
+      { date: "Sep 01, 2021", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -700.00, balance: 351450.00 },
+      { date: "Sep 20, 2021", title: "Client Payment - Project Upsilon", type: "Income", amount: 18000.00, balance: 369450.00 },
+      { date: "Oct 01, 2021", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -2500.00, balance: 366950.00 },
+      { date: "Oct 15, 2021", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -6000.00, balance: 360950.00 },
+      { date: "Nov 01, 2021", title: "Client Payment - Project Phi", type: "Income", amount: 35000.00, balance: 395950.00 },
+      { date: "Nov 15, 2021", title: "Payroll Processing - Q4 2021", type: "Transfer", amount: -14000.00, balance: 381950.00 },
+      { date: "Dec 01, 2021", title: "Business Insurance Premium", type: "Transfer", amount: -3000.00, balance: 378950.00 },
+      { date: "Dec 15, 2021", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -10000.00, balance: 368950.00 },
+      { date: "Jan 10, 2022", title: "Client Payment - Project Chi", type: "Income", amount: 50000.00, balance: 418950.00 },
+      { date: "Feb 01, 2022", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -3000.00, balance: 415950.00 },
+      { date: "Feb 15, 2022", title: "Payroll Processing - Q1 2022", type: "Transfer", amount: -14500.00, balance: 401450.00 },
+      { date: "Mar 01, 2022", title: "Client Payment - Project Psi", type: "Income", amount: 40000.00, balance: 441450.00 },
+      { date: "Mar 15, 2022", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -750.00, balance: 440700.00 },
+      { date: "Apr 01, 2022", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -2800.00, balance: 437900.00 },
+      { date: "Apr 20, 2022", title: "Client Payment - Project Omega", type: "Income", amount: 30000.00, balance: 467900.00 },
+      { date: "May 01, 2022", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -7000.00, balance: 460900.00 },
+      { date: "May 15, 2022", title: "Payroll Processing - Q2 2022", type: "Transfer", amount: -15000.00, balance: 445900.00 },
+      { date: "Jun 01, 2022", title: "Client Payment - Project Alpha2", type: "Income", amount: 48000.00, balance: 493900.00 },
+      { date: "Jun 15, 2022", title: "Business Insurance Premium", type: "Transfer", amount: -3200.00, balance: 490700.00 },
+      { date: "Jul 01, 2022", title: "Office Lease Payment - Downtown Tower", type: "Transfer", amount: -3000.00, balance: 487700.00 },
+      { date: "Jul 15, 2022", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -12000.00, balance: 475700.00 },
+      { date: "Aug 01, 2022", title: "Client Payment - Project Beta2", type: "Income", amount: 32000.00, balance: 507700.00 },
+      { date: "Aug 15, 2022", title: "Payroll Processing - Q3 2022", type: "Transfer", amount: -15500.00, balance: 492200.00 },
+      { date: "Sep 01, 2022", title: "Utility Payment - Electricity/Water", type: "Transfer", amount: -800.00, balance: 491400.00 },
+      { date: "Sep 20, 2022", title: "Client Payment - Project Gamma2", type: "Income", amount: 20000.00, balance: 511400.00 },
+      { date: "Oct 01, 2022", title: "Office Supplies - Monthly Order", type: "Transfer", amount: -3000.00, balance: 508400.00 },
+      { date: "Oct 15, 2022", title: "Marketing Expense - Digital Campaign", type: "Transfer", amount: -7500.00, balance: 500900.00 },
+      { date: "Nov 01, 2022", title: "Client Payment - Project Delta2", type: "Income", amount: 38000.00, balance: 538900.00 },
+      { date: "Nov 15, 2022", title: "Payroll Processing - Q4 2022", type: "Transfer", amount: -16000.00, balance: 522900.00 },
+      { date: "Dec 01, 2022", title: "Business Insurance Premium", type: "Transfer", amount: -3500.00, balance: 519400.00 },
+      { date: "Dec 15, 2022", title: "Equipment Purchase - Tech Systems Inc", type: "Transfer", amount: -13000.00, balance: 506400.00 },
+      { date: "Dec 31, 2022", title: "Year-End Tax Payment & Adjustment", type: "Transfer", amount: -136310.76, balance: 370089.24 }
+    ];
+
+    // Format number with commas and 2 decimal places
+    function formatCurrency(n) {
+      const sign = n < 0 ? '-' : '';
+      const abs = Math.abs(n);
+      return sign + '$' + abs.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    // Render transactions
+    const txList = document.getElementById('txList');
+    
+    // Sort transactions from newest to oldest
+    const sortedTransactions = [...transactions].reverse();
+    
+    // Security: Check authentication before rendering
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!checkAuthentication()) {
+        return;
+      }
+
+      renderTransactions();
+      setupEventListeners();
+    });
+
+    function renderTransactions() {
+      sortedTransactions.forEach(tx => {
+        const row = document.createElement('div');
+        row.className = 'tx-row';
+
+        // Date column
+        const dateCol = document.createElement('div');
+        dateCol.className = 'tx-date';
+        dateCol.innerHTML = `<div class="d">${tx.date}</div><div style="font-size:12px;color:#999;">${tx.date.includes('2019')? '2019':tx.date.includes('2020')?'2020':tx.date.includes('2021')?'2021':'2022'}</div>`;
+        // Description column
+        const descCol = document.createElement('div');
+        descCol.className = 'tx-desc';
+        descCol.innerHTML = `${tx.title}<span class="sub">${tx.type}</span>`;
+
+        // Amount column (with small balance line under amount)
+        const amtCol = document.createElement('div');
+        amtCol.className = 'tx-amount';
+        const amtSpan = document.createElement('div');
+        amtSpan.style.fontWeight = 800;
+        amtSpan.textContent = formatCurrency(tx.amount);
+        amtSpan.className = tx.amount >= 0 ? 'amt-positive' : 'amt-negative';
+        const balSpan = document.createElement('div');
+        balSpan.style.fontSize = '13px';
+        balSpan.style.color = '#777';
+        balSpan.style.marginTop = '6px';
+        balSpan.textContent = formatCurrency(tx.balance);
+        amtCol.appendChild(amtSpan);
+        amtCol.appendChild(balSpan);
+
+        // optional menu column (three dots) — put into amount column aligned right
+        const menu = document.createElement('div');
+        menu.className = 'menu';
+        menu.innerHTML = '⋮';
+        menu.title = 'More';
+
+        // append children into row grid: date, desc, amount + menu
+        row.appendChild(dateCol);
+        row.appendChild(descCol);
+
+        // Wrap amount and menu into a small container for alignment
+        const rightWrap = document.createElement('div');
+        rightWrap.style.display = 'flex';
+        rightWrap.style.justifyContent = 'flex-end';
+        rightWrap.style.alignItems = 'center';
+        rightWrap.style.gap = '12px';
+        rightWrap.appendChild(amtCol);
+        rightWrap.appendChild(menu);
+
+        row.appendChild(rightWrap);
+
+        txList.appendChild(row);
+      });
+
+      // compute totals (credits and debits) and render footer totals
+      const credits = transactions.filter(t => t.amount > 0);
+      const debits = transactions.filter(t => t.amount < 0);
+      const sumCredits = credits.reduce((s, t) => s + t.amount, 0);
+      const sumDebits = debits.reduce((s, t) => s + Math.abs(t.amount), 0);
+
+      const totalsFooter = document.getElementById('totalsFooter');
+      totalsFooter.innerHTML = `Page totals: Credits: [${credits.length}] ${formatCurrency(sumCredits)} | Debits: [${debits.length}] -${formatCurrency(sumDebits).replace('$','')}`;
+    }
+
+    function setupEventListeners() {
+      // Optional: search filter (basic) with sanitization
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', function() {
+        const q = sanitizeInput(this.value.trim().toLowerCase());
+        const rows = document.querySelectorAll('.tx-row');
+        sortedTransactions.forEach((tx, idx) => {
+          const row = rows[idx];
+          const text = (tx.title + ' ' + tx.type + ' ' + tx.date).toLowerCase();
+          row.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+
+      // Security: Add rate limiting for search
+      let searchTimeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          const q = sanitizeInput(this.value.trim().toLowerCase());
+          const rows = document.querySelectorAll('.tx-row');
+          sortedTransactions.forEach((tx, idx) => {
+            const row = rows[idx];
+            const text = (tx.title + ' ' + tx.type + ' ' + tx.date).toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+          });
+        }, 300); // 300ms delay
+      });
+
+      // Accessibility: allow clicking menu to show an alert (dummy)
+      document.querySelectorAll('.menu').forEach((m, i) => {
+        m.addEventListener('click', () => {
+          alert('Transaction options (dummy) — ' + sortedTransactions[i].title);
+        });
+      });
+
+      // Add logout functionality
+      const logOffLink = document.getElementById('logOffLink');
+      logOffLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleLogout();
+      });
+    }
+
+    // Security: Add session timeout warning
+    let inactivityTime = 0;
+    const sessionTimeout = 30 * 60 * 1000; // 30 minutes
+    
+    function resetInactivityTimer() {
+      inactivityTime = 0;
+    }
+    
+    function checkInactivity() {
+      inactivityTime += 1000;
+      if (inactivityTime >= sessionTimeout - 60000) { // Warn 1 minute before timeout
+        showSecurityAlert('Your session will expire in 1 minute due to inactivity.');
+      }
+      if (inactivityTime >= sessionTimeout) {
+        showSecurityAlert('Session expired due to inactivity.');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+      }
+    }
+    
+    // Reset timer on user activity
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    document.addEventListener('click', resetInactivityTimer);
+    
+    // Check inactivity every second
+    setInterval(checkInactivity, 1000);
+  </script>
+</body>
+</html>
